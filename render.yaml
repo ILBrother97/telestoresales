@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: telestore-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: STORE_SELLER_ID
+        sync: false
+      - key: FIREBASE_DB_URL
+        sync: false
+      - key: FIREBASE_CREDENTIALS_PATH
+        value: /etc/secrets/firebase-service-account.json
+    secretFiles:
+      - name: firebase-service-account
+        path: /etc/secrets/firebase-service-account.json
