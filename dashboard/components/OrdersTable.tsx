@@ -25,7 +25,8 @@ export default function OrdersTable({ orders, sellerId, onOrderUpdated }: Orders
   }
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleString()
+    const date = new Date(timestamp * 1000)
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
   }
 
   const formatItems = (items: Order['items']) => {
@@ -59,70 +60,40 @@ export default function OrdersTable({ orders, sellerId, onOrderUpdated }: Orders
   }
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Order ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Items
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {orders.map((order) => (
-              <tr key={order.order_id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.order_id.slice(0, 8)}...
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                  {formatItems(order.items)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${order.total.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(order.timestamp)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {(order.status === 'pending' || order.status === 'new') && (
-                    <button
-                      onClick={() => handleMarkCompleted(order.order_id)}
-                      disabled={updating === order.order_id}
-                      className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium"
-                    >
-                      {updating === order.order_id ? 'Updating...' : 'Mark Completed'}
-                    </button>
-                  )}
-                  {order.status === 'completed' && (
-                    <span className="text-green-600 text-xs">✓ Completed</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="space-y-3">
+      {orders.map((order) => (
+        <div key={order.order_id} className="bg-white rounded-lg shadow p-3 text-sm">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <span className="font-medium text-gray-900">Order #{order.order_id.slice(0, 6)}</span>
+              <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${getStatusColor(order.status)}`}>
+                {order.status}
+              </span>
+            </div>
+            <span className="font-semibold text-gray-900">${order.total.toFixed(2)}</span>
+          </div>
+          
+          <div className="text-gray-600 mb-2 truncate">
+            {formatItems(order.items)}
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 text-xs">{formatDate(order.timestamp)}</span>
+            
+            {(order.status === 'pending' || order.status === 'new') ? (
+              <button
+                onClick={() => handleMarkCompleted(order.order_id)}
+                disabled={updating === order.order_id}
+                className="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {updating === order.order_id ? '...' : 'Complete'}
+              </button>
+            ) : (
+              <span className="text-green-600 text-xs">✓ Done</span>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
