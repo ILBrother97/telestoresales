@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import OrdersTable from '@/components/OrdersTable'
 import { Order, getOrdersBySeller } from '@/lib/firebase'
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams()
   const sellerId = searchParams.get('seller')
 
@@ -87,5 +87,17 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   )
 }
