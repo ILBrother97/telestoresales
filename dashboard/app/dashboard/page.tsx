@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import OrdersTable from '@/components/OrdersTable'
-import { Order, getOrdersBySeller } from '@/lib/firebase'
+import ProductsTable from '@/components/ProductsTable'
+import { Order, Product, getOrdersBySeller, getProductsBySeller } from '@/lib/firebase'
 
 type Tab = 'orders' | 'products' | 'settings'
 
@@ -13,7 +14,9 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<Tab>('orders')
 
   const [orders, setOrders] = useState<Order[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [productsLoading, setProductsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
@@ -38,6 +41,26 @@ function DashboardContent() {
   useEffect(() => {
     fetchOrders()
   }, [fetchOrders])
+
+  const fetchProducts = useCallback(async () => {
+    if (!sellerId) return
+    
+    setProductsLoading(true)
+    try {
+      const data = await getProductsBySeller(sellerId)
+      setProducts(data)
+    } catch (err) {
+      console.error('Failed to load products')
+    } finally {
+      setProductsLoading(false)
+    }
+  }, [sellerId])
+
+  useEffect(() => {
+    if (activeTab === 'products' && products.length === 0) {
+      fetchProducts()
+    }
+  }, [activeTab, products.length, fetchProducts])
 
   if (!sellerId) {
     return (
@@ -78,10 +101,16 @@ function DashboardContent() {
         )
       case 'products':
         return (
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-600">Products management coming soon!</p>
-            <p className="text-sm text-gray-400 mt-2">Use /listproducts or /addtestproduct in bot chat</p>
-          </div>
+          <>
+            {productsLoading && (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            )}
+            {!productsLoading && (
+              <ProductsTable products={products} sellerId={sellerId} />
+            )}
+          </>
         )
       case 'settings':
         return (

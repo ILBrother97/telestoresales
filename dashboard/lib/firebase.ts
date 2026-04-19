@@ -23,6 +23,14 @@ export interface Order {
   status: 'pending' | 'completed' | 'cancelled' | 'new'
 }
 
+export interface Product {
+  product_id: string
+  name: string
+  price: number
+  description?: string
+  stock?: number
+}
+
 export async function getOrdersBySeller(sellerId: string): Promise<Order[]> {
   const ordersRef = ref(db, 'orders')
   const snapshot = await get(ordersRef)
@@ -51,6 +59,29 @@ export async function markOrderAsCompleted(orderId: string): Promise<void> {
   await update(orderRef, {
     status: 'completed',
   })
+}
+
+export async function getProductsBySeller(sellerId: string): Promise<Product[]> {
+  const productsRef = ref(db, `sellers/${sellerId}/products`)
+  const snapshot = await get(productsRef)
+  
+  if (!snapshot.exists()) {
+    return []
+  }
+
+  const products: Product[] = []
+  snapshot.forEach((child) => {
+    const product = child.val()
+    products.push({
+      product_id: child.key as string,
+      name: product.name || 'Unnamed Product',
+      price: product.price || 0,
+      description: product.description,
+      stock: product.stock,
+    })
+  })
+
+  return products
 }
 
 export { db }
